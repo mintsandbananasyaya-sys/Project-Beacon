@@ -19,6 +19,8 @@
     --font-display: "Bahnschrift", "Arial Narrow", "Segoe UI", sans-serif;
     --font-body: "Segoe UI", system-ui, -apple-system, sans-serif;
     --font-mono: "Cascadia Mono", "Consolas", ui-monospace, "SFMono-Regular", Menlo, monospace;
+    --cursor-default: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E%3Cg fill='%237fe3ff'%3E%3Cpolygon points='14,2 16,12 14,10 12,12'/%3E%3Cpolygon points='14,26 16,16 14,18 12,16'/%3E%3Cpolygon points='2,14 12,16 10,14 12,12'/%3E%3Cpolygon points='26,14 16,16 18,14 16,12'/%3E%3C/g%3E%3Ccircle cx='14' cy='14' r='2.4' fill='white'/%3E%3C/svg%3E") 14 14, auto;
+    --cursor-pointer: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='11' fill='none' stroke='%237fe3ff' stroke-width='1.5'/%3E%3Ccircle cx='16' cy='16' r='3' fill='%23ff6a52'/%3E%3Cline x1='16' y1='2' x2='16' y2='7' stroke='%237fe3ff' stroke-width='1.5'/%3E%3Cline x1='16' y1='25' x2='16' y2='30' stroke='%237fe3ff' stroke-width='1.5'/%3E%3Cline x1='2' y1='16' x2='7' y2='16' stroke='%237fe3ff' stroke-width='1.5'/%3E%3Cline x1='25' y1='16' x2='30' y2='16' stroke='%237fe3ff' stroke-width='1.5'/%3E%3C/svg%3E") 16 16, pointer;
   }
 
   *{ box-sizing: border-box; }
@@ -30,6 +32,11 @@
     color: var(--white);
     font-family: var(--font-body);
     overflow-x: hidden;
+    cursor: var(--cursor-default);
+  }
+
+  a, button, .home-trigger, .discord-btn, [role="button"], input, select, textarea{
+    cursor: var(--cursor-pointer);
   }
 
   ::selection{ background: var(--cyan); color: #04060c; }
@@ -56,7 +63,7 @@
     position: fixed; inset:0; z-index:100;
     display:flex; align-items:center; justify-content:center;
     background: var(--void);
-    cursor: pointer;
+    cursor: var(--cursor-pointer);
     transition: opacity .8s ease, transform .9s cubic-bezier(.7,0,.3,1);
   }
   #intro.intro-out{
@@ -122,14 +129,42 @@
     backdrop-filter: blur(10px);
     border-bottom: 1px solid var(--line);
   }
-  .brand{ display:flex; align-items:center; gap:.7rem; cursor:pointer; background:none; border:none; padding:0; text-decoration:none; }
-  .brand svg{ width:34px; height:34px; }
+  .brand{ display:flex; align-items:center; gap:.7rem; background:none; border:none; padding:0; text-decoration:none; }
+  .brand svg{ width:34px; height:34px; transform-box: fill-box; transform-origin: center; }
   .brand .core, .brand .spike-major, .brand .spike-minor, .brand .tick, .brand .ring-outer, .brand .ring-inner{ opacity:1; }
   .brand span{
     font-family: var(--font-display); font-weight:600; letter-spacing:.32em;
     font-size:.95rem; color: var(--white); text-transform:uppercase;
   }
   .brand span em{ color: var(--cyan); font-style:normal; }
+
+  /* logo click-burst variants, cycled on each click */
+  .brand svg.anim-a{ animation: brand-spin-burst .65s cubic-bezier(.2,1,.3,1); }
+  .brand svg.anim-b{ animation: brand-flash-pulse .6s ease; }
+  .brand svg.anim-c{ animation: brand-flip .6s cubic-bezier(.4,0,.2,1); }
+  @keyframes brand-spin-burst{
+    0%{ transform: scale(1) rotate(0deg); filter: brightness(1); }
+    45%{ transform: scale(1.4) rotate(220deg); filter: brightness(2) drop-shadow(0 0 12px var(--cyan)); }
+    100%{ transform: scale(1) rotate(360deg); filter: brightness(1); }
+  }
+  @keyframes brand-flash-pulse{
+    0%,100%{ transform: scale(1); filter: drop-shadow(0 0 0 transparent); }
+    50%{ transform: scale(1.22); filter: drop-shadow(0 0 10px var(--white)) drop-shadow(0 0 26px var(--cyan)); }
+  }
+  @keyframes brand-flip{
+    0%{ transform: perspective(300px) rotateY(0deg); }
+    100%{ transform: perspective(300px) rotateY(360deg); }
+  }
+
+  .nav-toggle{
+    display:none; background:none; border:none; padding:.4rem; margin:0;
+    align-items:center; justify-content:center;
+  }
+  .nav-toggle svg{ width:22px; height:22px; }
+  .nav-toggle svg rect{ fill: var(--cyan); transition: transform .25s ease, opacity .25s ease; transform-box: fill-box; transform-origin: center; }
+  .nav-toggle.open svg rect:nth-child(1){ transform: translateY(6px) rotate(45deg); }
+  .nav-toggle.open svg rect:nth-child(2){ opacity:0; }
+  .nav-toggle.open svg rect:nth-child(3){ transform: translateY(-6px) rotate(-45deg); }
 
   .navlinks{ display:flex; align-items:center; gap:1.4rem; font-family: var(--font-mono); }
   .navlinks a{
@@ -141,7 +176,7 @@
     content:""; position:absolute; left:0; bottom:-4px; width:100%; height:1px; background: var(--cyan);
     box-shadow: 0 0 6px var(--cyan);
   }
-  .navlinks a[data-soon]{ cursor:default; }
+  .navlinks a[data-soon]{ }
   .navlinks a[data-soon]:hover{ color: var(--steel); }
   .navlinks a[data-soon]::before{
     content: "soon"; position:absolute; top:-1.3em; left:50%; transform:translateX(-50%) scale(.8);
@@ -296,10 +331,22 @@
   footer .fmark{ display:flex; align-items:center; justify-content:center; gap:.5rem; margin-bottom:.8rem; }
   footer .fmark svg{ width:20px; height:20px; opacity:.7; }
 
-  @media (max-width: 640px){
+  /* ================= MOBILE NAV ================= */
+  @media (max-width: 720px){
     nav{ padding:.8rem 1.1rem; }
-    .navlinks{ gap:.9rem; }
-    .brand span{ font-size:.75rem; letter-spacing:.22em; }
+    .brand span{ font-size:.72rem; letter-spacing:.2em; }
+    .nav-toggle{ display:flex; }
+    .navlinks{
+      position:fixed; top:58px; left:0; right:0; z-index:49;
+      flex-direction:column; align-items:flex-start; gap:1.1rem;
+      background: var(--panel-solid); border-bottom:1px solid var(--line);
+      padding:1.3rem 1.4rem 1.6rem;
+      transform: translateY(-14px); opacity:0; pointer-events:none;
+      transition: opacity .25s ease, transform .25s ease;
+    }
+    .navlinks.open{ opacity:1; transform:none; pointer-events:auto; }
+    .navlinks .divider{ display:none; }
+    .navlinks-user{ order:5; }
   }
 
   @media (prefers-reduced-motion: reduce){
@@ -425,12 +472,15 @@
 <div class="app hidden" id="app">
 
   <nav>
-    <a class="brand home-trigger" href="index.html#top" aria-label="Project Beacon — home">
+    <a class="brand home-trigger" href="/#top" aria-label="Project Beacon — home">
       <svg viewBox="0 0 200 200"><g class="ring-outer"><circle cx="100" cy="100" r="90" fill="none" stroke="var(--white)" stroke-width="2"/></g><g class="ring-inner"><circle cx="100" cy="100" r="76" fill="none" stroke="var(--cyan)" stroke-width="1.5" opacity=".6"/></g><g fill="var(--white)"><polygon class="spike-major" points="100,4 106,88 100,74 94,88"/><polygon class="spike-major" points="100,196 106,112 100,126 94,112"/><polygon class="spike-major" points="4,100 88,106 74,100 88,94"/><polygon class="spike-major" points="196,100 112,106 126,100 112,94"/></g><g fill="var(--white)" opacity=".9"><polygon class="spike-minor" points="100,100 148,58 132,74"/><polygon class="spike-minor" points="100,100 142,152 126,132"/><polygon class="spike-minor" points="100,100 52,142 68,126"/><polygon class="spike-minor" points="100,100 58,48 74,68"/></g><polygon class="core" points="100,84 116,100 100,116 84,100" fill="var(--white)"/></svg>
       <span>BEACON</span>
     </a>
-    <div class="navlinks">
-      <a href="index.html#top" class="home-trigger active">Home</a>
+    <button class="nav-toggle" id="nav-toggle" aria-label="Toggle menu" aria-expanded="false">
+      <svg viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="2" rx="1"/><rect x="3" y="11" width="18" height="2" rx="1"/><rect x="3" y="16" width="18" height="2" rx="1"/></svg>
+    </button>
+    <div class="navlinks" id="navlinks">
+      <a href="/#top" class="home-trigger active">Home</a>
       <span class="divider">/</span>
       <a href="applications.html">Applications</a>
       <span class="divider">/</span>
@@ -620,13 +670,43 @@
 
   var onHomePage = !!document.getElementById('hero');
 
+  // mobile hamburger
+  var navToggle = document.getElementById('nav-toggle');
+  var navlinks = document.getElementById('navlinks');
+  if (navToggle && navlinks){
+    navToggle.addEventListener('click', function(){
+      var open = navlinks.classList.toggle('open');
+      navToggle.classList.toggle('open', open);
+      navToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+    navlinks.querySelectorAll('a').forEach(function(a){
+      a.addEventListener('click', function(){
+        navlinks.classList.remove('open');
+        navToggle.classList.remove('open');
+        navToggle.setAttribute('aria-expanded', 'false');
+      });
+    });
+  }
+
+  // cycling click-burst animation on the logo, then navigate
+  var burstClasses = ['anim-a', 'anim-b', 'anim-c'];
+  var burstIndex = 0;
   document.querySelectorAll('.home-trigger').forEach(function(el){
     el.addEventListener('click', function(e){
-      if (onHomePage){
-        e.preventDefault();
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+      e.preventDefault();
+      var svg = el.querySelector('svg');
+      if (svg && !reduceMotion){
+        burstClasses.forEach(function(c){ svg.classList.remove(c); });
+        void svg.offsetWidth; // restart animation
+        svg.classList.add(burstClasses[burstIndex % burstClasses.length]);
+        burstIndex++;
       }
-      // otherwise let the link navigate to index.html#top as normal
+      if (onHomePage){
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } else {
+        var href = el.getAttribute('href');
+        setTimeout(function(){ window.location.href = href; }, reduceMotion ? 0 : 380);
+      }
     });
   });
 
