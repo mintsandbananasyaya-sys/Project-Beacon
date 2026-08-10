@@ -27,6 +27,8 @@ const WEBSITE_URL = process.env.WEBSITE_URL; // e.g. https://project-beacon.onre
 // userId-sessionLabel -> Timeout, so a user can't stack duplicate reminders for the same session
 const scheduledReminders = new Map();
 
+const CUTE_PEOPLE = ['Liv', 'Vicipedia', 'Alphadarkman', 'Farlue', 'ver', 'aesily'];
+
 // ---------- slash command definitions ----------
 
 const commands = [
@@ -115,6 +117,11 @@ const commands = [
   new SlashCommandBuilder()
     .setName('remindme')
     .setDescription('Get a DM 15 minutes before the next session')
+    .toJSON(),
+
+  new SlashCommandBuilder()
+    .setName('cute')
+    .setDescription('Shows a random cute person')
     .toJSON(),
 ];
 
@@ -353,6 +360,9 @@ client.on('interactionCreate', async (interaction) => {
         ? '✅ Your application status: **Accepted**'
         : '⏳ Your application status: **Denied or in review**';
       await interaction.reply({ content: message, ephemeral: true });
+    } else if (interaction.commandName === 'cute') {
+      const pick = CUTE_PEOPLE[Math.floor(Math.random() * CUTE_PEOPLE.length)];
+      await interaction.reply(`🥰 **${pick}** is the cutest!`);
     }
   } catch (err) {
     console.error('[Beacon] Command error:', err);
