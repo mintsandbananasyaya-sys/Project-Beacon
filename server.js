@@ -78,6 +78,14 @@ app.get('/', (req, res) => {
   res.send(renderPage('index.html', getSession(req)));
 });
 
+// Safety net: if anything ever links or is typed as /index.html directly,
+// send it through the real "/" route instead of falling through to
+// express.static below — otherwise the auth-state script never gets
+// injected and the page looks logged-out even with a valid session cookie.
+app.get('/index.html', (req, res) => {
+  res.redirect(302, '/');
+});
+
 // Other pages require a session; bounce unauthenticated visitors back to '/'
 // so they see the intro + gate flow instead of a bare page.
 const PROTECTED_PAGES = ['applications.html', 'credits.html'];
