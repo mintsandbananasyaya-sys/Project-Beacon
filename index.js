@@ -24,6 +24,9 @@ const OWNER_ROLE_ID = process.env.OWNER_ROLE_ID;
 const ACCEPTED_ROLE_ID = process.env.ACCEPTED_ROLE_ID;
 const WEBSITE_URL = process.env.WEBSITE_URL; // e.g. https://project-beacon.onrender.com
 
+// userId-sessionLabel -> Timeout, so a user can't stack duplicate reminders for the same session
+const scheduledReminders = new Map();
+
 // ---------- slash command definitions ----------
 
 const commands = [
@@ -108,6 +111,11 @@ const commands = [
     .setName('nextsession')
     .setDescription('Show the next upcoming Beacon session')
     .toJSON(),
+
+  new SlashCommandBuilder()
+    .setName('remindme')
+    .setDescription('Get a DM 15 minutes before the next session')
+    .toJSON(),
 ];
 
 async function registerCommands() {
@@ -173,6 +181,35 @@ function buildNextSessionEmbed() {
     .setTitle('📅 Next Session')
     .setDescription(lines.join('\n'))
     .setColor(0x5865f2);
+}
+
+function scheduleReminder(user, session) {
+  const key = `${user.id}-${session.label}`;
+  if (scheduledReminders.has(key)) return 'already';
+
+  const now = Math.floor(Date.now() / 1000);
+  const reminderAt = session.start - 15 * 60;
+  const msUntilReminder = (reminderAt - now) * 1000;
+
+  if (reminderAt <= now) return 'too_late';
+
+  // setTimeout caps out around ~24.8 days; Beacon sessions are within that window,
+  // but guard anyway so it doesn't silently fire immediately on overflow.
+  if (msUntilReminder > 2147483647) return 'too_far';
+
+  const timeout = setTimeout(async () => {
+    scheduledReminders.delete(key);
+    try {
+      await user.send(
+        `⏰ **${session.label}** starts in 15 minutes! <t:${session.start}:t> (<t:${session.start}:R>)`
+      );
+    } catch (err) {
+      console.log(`[Beacon] Couldn't DM ${user.tag} for reminder (DMs likely closed).`);
+    }
+  }, msUntilReminder);
+
+  scheduledReminders.set(key, timeout);
+  return 'scheduled';
 }
 
 // ---------- role assignment logic ----------
@@ -273,6 +310,24 @@ client.on('interactionCreate', async (interaction) => {
       await interaction.reply({ embeds: [buildScheduleEmbed()] }); // not ephemeral - visible to everyone
     } else if (interaction.commandName === 'nextsession') {
       await interaction.reply({ embeds: [buildNextSessionEmbed()] }); // not ephemeral - visible to everyone
+    } else if (interaction.commandName === 'remindme') {
+      const now = Math.floor(Date.now() / 1000);
+      const next = SESSIONS.find((s) => s.end > now);
+
+      if (!next) {
+        await interaction.reply({ content: 'No upcoming sessions to remind you about right now.', ephemeral: true });
+      } else {
+        const result = scheduleReminder(interaction.user, next);
+        if (result === 'scheduled') {
+          await interaction.reply({ content: `Got it — I'll DM you 15 minutes before **${next.label}** (<t:${next.start}:t>).`, ephemeral: true });
+        } else if (result === 'already') {
+          await interaction.reply({ content: `You're already set for a reminder before **${next.label}**.`, ephemeral: true });
+        } else if (result === 'too_late') {
+          await interaction.reply({ content: `**${next.label}** is starting too soon (or already started) to set a 15-minute reminder.`, ephemeral: true });
+        } else {
+          await interaction.reply({ content: `**${next.label}** is too far out to schedule yet — try again closer to the date.`, ephemeral: true });
+        }
+      }
     } else if (interaction.commandName === 'apply') {
       if (!WEBSITE_URL) {
         return interaction.reply({ content: 'Application link isn\'t configured yet — ask an owner to set `WEBSITE_URL`.', ephemeral: true });
