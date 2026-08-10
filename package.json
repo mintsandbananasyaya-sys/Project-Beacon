@@ -1,14 +1,17 @@
 {
   "name": "beacon-bot",
   "version": "0.1.0",
-  "description": "Discord bot for Project: Beacon",
-  "main": "index.js",
+  "description": "Discord bot and web server for Project: Beacon",
+  "main": "server.js",
   "type": "commonjs",
   "scripts": {
-    "start": "node index.js"
+    "start": "node server.js",
+    "bot": "node index.js"
   },
   "dependencies": {
     "discord.js": "^14.14.1",
-    "dotenv": "^16.4.5"
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "cookie-parser": "^1.4.6"
   }
 }
