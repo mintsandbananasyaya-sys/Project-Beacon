@@ -179,7 +179,11 @@ async function runRoleAction(interaction, mode) {
 client.once('ready', async () => {
   console.log(`[Beacon] Online as ${client.user.tag}`);
   client.user.setActivity('the signal', { type: ActivityType.Watching });
-  await registerCommands();
+  if (process.env.DEPLOY_COMMANDS === 'true') {
+    await registerCommands();
+  } else {
+    console.log('[Beacon] Skipping command registration (DEPLOY_COMMANDS not "true").');
+  }
 });
 
 client.on('interactionCreate', async (interaction) => {
