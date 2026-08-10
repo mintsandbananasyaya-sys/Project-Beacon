@@ -6,7 +6,7 @@ const {
   REST,
   Routes,
   SlashCommandBuilder,
-  PermissionFlagsBits,
+  EmbedBuilder,
 } = require('discord.js');
 const express = require('express');
 
@@ -83,6 +83,11 @@ const commands = [
         .setRequired(false)
     )
     .toJSON(),
+
+  new SlashCommandBuilder()
+    .setName('schedule')
+    .setDescription('Show the Beacon session schedule')
+    .toJSON(),
 ];
 
 async function registerCommands() {
@@ -97,6 +102,27 @@ async function registerCommands() {
   } catch (err) {
     console.error('[Beacon] Failed to register commands:', err);
   }
+}
+
+// ---------- schedule ----------
+
+function buildScheduleEmbed() {
+  const lines = [
+    `🌍 **Session 1** — <t:1786465800:F> (<t:1786465800:t>–<t:1786476600:t>)`,
+    `🌍 **Session 2** — <t:1786811400:F> (<t:1786811400:t>–<t:1786822200:t>)`,
+    `🌍 **Session 3** — <t:1786897800:F> (<t:1786897800:t>–<t:1786908600:t>)`,
+    ``,
+    `**Build Day**`,
+    `🌍 **Session 4** — <t:1787416200:F> (<t:1787416200:t>–<t:1787427000:t>)`,
+    `🌍 **Session 5** — <t:1787502600:F> (<t:1787502600:t>–<t:1787513400:t>)`,
+    `🌍 **Session 6** — <t:1788021000:F> (<t:1788021000:t>–<t:1788031800:t>)`,
+    `🌍 **Session 7** — <t:1788107400:F> (<t:1788107400:t>–<t:1788118200:t>)`,
+  ];
+
+  return new EmbedBuilder()
+    .setTitle('📅 Beacon Schedule')
+    .setDescription(lines.join('\n'))
+    .setColor(0x5865f2);
 }
 
 // ---------- role assignment logic ----------
@@ -193,6 +219,8 @@ client.on('interactionCreate', async (interaction) => {
       await runRoleAction(interaction, 'give');
     } else if (interaction.commandName === 'removerole') {
       await runRoleAction(interaction, 'remove');
+    } else if (interaction.commandName === 'schedule') {
+      await interaction.reply({ embeds: [buildScheduleEmbed()] }); // not ephemeral - visible to everyone
     }
   } catch (err) {
     console.error('[Beacon] Command error:', err);
