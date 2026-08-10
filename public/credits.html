@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Credits — Project: Beacon</title>
+<style>
+  :root{
+    --void: #04060c;
+    --panel: rgba(10,21,38,.72);
+    --panel-solid: #0a1424;
+    --line: #1c2940;
+    --cyan: #7fe3ff;
+    --cyan-dim: #3aa6c2;
+    --white: #eef8ff;
+    --ember: #ff6a52;
+    --steel: #5c7191;
+    --steel-dim: #2c3a52;
+    --font-display: "Bahnschrift", "Arial Narrow", "Segoe UI", sans-serif;
+    --font-body: "Segoe UI", system-ui, -apple-system, sans-serif;
+    --font-mono: "Cascadia Mono", "Consolas", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  }
+
+  *{ box-sizing: border-box; }
+  html{ scroll-behavior: smooth; }
+
+  body{
+    margin:0;
+    background: var(--void);
+    color: var(--white);
+    font-family: var(--font-body);
+    overflow-x: hidden;
+    min-height:100vh;
+  }
+
+  ::selection{ background: var(--cyan); color: #04060c; }
+
+  #bokeh{ position: fixed; inset:0; z-index:0; overflow:hidden; pointer-events:none; }
+  #bokeh span{ position:absolute; border-radius:50%; filter: blur(40px); opacity:.28; animation: drift 22s ease-in-out infinite alternate; }
+  #bokeh span:nth-child(1){ width:260px; height:260px; left:6%; top:12%; background:var(--ember); animation-duration:26s; }
+  #bokeh span:nth-child(2){ width:180px; height:180px; left:82%; top:18%; background:var(--ember); animation-duration:19s; }
+  #bokeh span:nth-child(3){ width:320px; height:320px; left:70%; top:70%; background:var(--ember); animation-duration:30s; }
+  #bokeh span:nth-child(4){ width:220px; height:220px; left:12%; top:75%; background:var(--cyan); opacity:.14; animation-duration:24s; }
+  @keyframes drift{ from{ transform: translate(0,0) scale(1); } to{ transform: translate(30px,-24px) scale(1.12); } }
+
+  nav{
+    position: fixed; top:0; left:0; right:0; z-index:50;
+    display:flex; align-items:center; justify-content:space-between;
+    padding: .9rem 2rem;
+    background: var(--panel);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--line);
+  }
+  .brand{ display:flex; align-items:center; gap:.7rem; cursor:pointer; background:none; border:none; padding:0; text-decoration:none; }
+  .brand svg{ width:34px; height:34px; }
+  .brand span{ font-family: var(--font-display); font-weight:600; letter-spacing:.32em; font-size:.95rem; color: var(--white); text-transform:uppercase; }
+
+  .navlinks{ display:flex; align-items:center; gap:1.4rem; font-family: var(--font-mono); }
+  .navlinks a{
+    color: var(--steel); text-decoration:none; font-size:.72rem; letter-spacing:.2em; text-transform:uppercase;
+    position:relative; padding:.3rem 0; transition: color .25s ease;
+  }
+  .navlinks a.active{ color: var(--cyan); }
+  .navlinks a.active::after{
+    content:""; position:absolute; left:0; bottom:-4px; width:100%; height:1px; background: var(--cyan);
+    box-shadow: 0 0 6px var(--cyan);
+  }
+  .navlinks .divider{ color: var(--steel-dim); }
+
+  main{ position:relative; z-index:1; max-width: 960px; margin: 0 auto; padding: 8rem 1.5rem 5rem; }
+
+  .page-head{ text-align:center; margin-bottom: 3.5rem; }
+  .eyebrow{ font-family: var(--font-mono); letter-spacing:.4em; font-size:.68rem; color: var(--steel); text-transform:uppercase; margin: 0 0 .8rem; }
+  h1.wordmark{
+    font-family: var(--font-display); text-transform:uppercase; font-weight:700; letter-spacing:.2em;
+    font-size: clamp(1.7rem, 5vw, 2.6rem); margin:0; color: var(--white);
+    text-shadow: 0 0 26px rgba(127,227,255,.25);
+  }
+
+  .credits-group{ margin-bottom: 3rem; }
+  .group-head{ display:flex; align-items:baseline; gap:.9rem; margin-bottom:1.4rem; }
+  .group-head .idx{ font-family: var(--font-mono); color:var(--cyan-dim); font-size:.75rem; letter-spacing:.2em; }
+  .group-head h2{
+    font-family: var(--font-display); text-transform:uppercase; letter-spacing:.18em;
+    font-size: 1.05rem; margin:0; color:var(--white);
+  }
+  .group-head .rule{ flex:1; height:1px; background: linear-gradient(90deg, var(--line), transparent); }
+
+  .credits-grid{ display:grid; grid-template-columns: repeat(auto-fit, minmax(240px,1fr)); gap:1rem; }
+
+  .credit-card{
+    background: var(--panel); border:1px solid var(--line); border-radius:2px;
+    padding: 1.5rem 1.4rem; position:relative;
+  }
+  .credit-card::before{ content:""; position:absolute; top:0; left:0; width:16px; height:16px; border-top:1px solid var(--cyan); border-left:1px solid var(--cyan); }
+  .credit-card::after{ content:""; position:absolute; bottom:0; right:0; width:16px; height:16px; border-bottom:1px solid var(--cyan); border-right:1px solid var(--cyan); }
+
+  .credit-role{
+    font-family: var(--font-mono); font-size:.62rem; letter-spacing:.25em; text-transform:uppercase;
+    color: var(--cyan-dim); margin-bottom:.7rem; display:block;
+  }
+  .credit-name{
+    font-family: var(--font-display); letter-spacing:.05em; font-size:1.15rem; color: var(--white);
+    margin: 0 0 .25rem;
+  }
+  .credit-handle{ font-family: var(--font-mono); font-size:.78rem; color: var(--steel); margin: 0 0 .9rem; }
+  .credit-tags{ display:flex; flex-wrap:wrap; gap:.4rem; }
+  .tag-chip{
+    font-family: var(--font-mono); font-size:.62rem; letter-spacing:.08em; text-transform:uppercase;
+    color: var(--steel); border: 1px solid var(--steel-dim); border-radius:2px; padding: .22rem .55rem;
+  }
+
+  footer{
+    border-top: 1px solid var(--line); padding: 2.2rem 1.5rem; text-align:center;
+    font-family: var(--font-mono); font-size:.68rem; letter-spacing:.2em; color: var(--steel-dim);
+    text-transform:uppercase; position:relative; z-index:1;
+  }
+  footer .fmark{ display:flex; align-items:center; justify-content:center; gap:.5rem; margin-bottom:.8rem; }
+  footer .fmark svg{ width:20px; height:20px; opacity:.7; }
+
+  @media (max-width: 640px){
+    nav{ padding:.8rem 1.1rem; }
+    .navlinks{ gap:.9rem; }
+    .brand span{ font-size:.75rem; letter-spacing:.22em; }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+  }
+</style>
+</head>
+<body>
+
+<div id="bokeh" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
+
+<nav>
+  <a class="brand home-trigger" href="index.html#top" aria-label="Project Beacon — home">
+    <svg viewBox="0 0 200 200"><circle cx="100" cy="100" r="90" fill="none" stroke="var(--white)" stroke-width="2"/><circle cx="100" cy="100" r="76" fill="none" stroke="var(--cyan)" stroke-width="1.5" opacity=".6"/><g fill="var(--white)"><polygon points="100,4 106,88 100,74 94,88"/><polygon points="100,196 106,112 100,126 94,112"/><polygon points="4,100 88,106 74,100 88,94"/><polygon points="196,100 112,106 126,100 112,94"/></g><g fill="var(--white)" opacity=".9"><polygon points="100,100 148,58 132,74"/><polygon points="100,100 142,152 126,132"/><polygon points="100,100 52,142 68,126"/><polygon points="100,100 58,48 74,68"/></g><polygon points="100,84 116,100 100,116 84,100" fill="var(--white)"/></svg>
+    <span>BEACON</span>
+  </a>
+  <div class="navlinks">
+    <a href="index.html#top">Home</a>
+    <span class="divider">/</span>
+    <a href="applications.html">Applications</a>
+    <span class="divider">/</span>
+    <a href="credits.html" class="active">Credits</a>
+  </div>
+</nav>
+
+<main>
+  <div class="page-head">
+    <p class="eyebrow">Signal Origins</p>
+    <h1 class="wordmark">Credits</h1>
+  </div>
+
+  <div class="credits-group">
+    <div class="group-head">
+      <span class="idx">01</span>
+      <h2>Owners</h2>
+      <span class="rule"></span>
+    </div>
+    <div class="credits-grid">
+      <div class="credit-card">
+        <span class="credit-role">Owner</span>
+        <p class="credit-name">ThatGlooshy</p>
+        <p class="credit-handle">@that_gloosy</p>
+        <div class="credit-tags"><span class="tag-chip">he/him</span></div>
+      </div>
+      <div class="credit-card">
+        <span class="credit-role">Owner</span>
+        <p class="credit-name">Jansen_1438</p>
+        <p class="credit-handle">@kilianbaer</p>
+        <div class="credit-tags">
+          <span class="tag-chip">the GOAT</span>
+          <span class="tag-chip">sweetie fox</span>
+          <span class="tag-chip">Mace</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="credits-group">
+    <div class="group-head">
+      <span class="idx">02</span>
+      <h2>Website</h2>
+      <span class="rule"></span>
+    </div>
+    <div class="credits-grid">
+      <div class="credit-card">
+        <span class="credit-role">Coder</span>
+        <p class="credit-name">alphadarkman</p>
+        <div class="credit-tags"><span class="tag-chip">Website</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="credits-group">
+    <div class="group-head">
+      <span class="idx">03</span>
+      <h2>Staff</h2>
+      <span class="rule"></span>
+    </div>
+    <div class="credits-grid">
+      <div class="credit-card">
+        <span class="credit-role">Staff</span>
+        <p class="credit-name">tunceli</p>
+        <div class="credit-tags"><span class="tag-chip">ADAL</span></div>
+      </div>
+      <div class="credit-card">
+        <span class="credit-role">Staff</span>
+        <p class="credit-name">Geneseck</p>
+        <div class="credit-tags">
+          <span class="tag-chip">GENE</span>
+          <span class="tag-chip">Modrinth</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer>
+  <div class="fmark">
+    <svg viewBox="0 0 200 200"><circle cx="100" cy="100" r="90" fill="none" stroke="var(--white)" stroke-width="2"/><polygon points="100,4 106,88 100,74 94,88" fill="var(--white)"/><polygon points="100,196 106,112 100,126 94,112" fill="var(--white)"/><polygon points="4,100 88,106 74,100 88,94" fill="var(--white)"/><polygon points="196,100 112,106 126,100 112,94" fill="var(--white)"/></svg>
+  </div>
+  Project: Beacon
+</footer>
+
+</body>
+</html>

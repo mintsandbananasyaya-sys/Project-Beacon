@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Applications — Project: Beacon</title>
+<style>
+  :root{
+    --void: #04060c;
+    --panel: rgba(10,21,38,.72);
+    --panel-solid: #0a1424;
+    --line: #1c2940;
+    --cyan: #7fe3ff;
+    --cyan-dim: #3aa6c2;
+    --white: #eef8ff;
+    --ember: #ff6a52;
+    --steel: #5c7191;
+    --steel-dim: #2c3a52;
+    --font-display: "Bahnschrift", "Arial Narrow", "Segoe UI", sans-serif;
+    --font-body: "Segoe UI", system-ui, -apple-system, sans-serif;
+    --font-mono: "Cascadia Mono", "Consolas", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  }
+
+  *{ box-sizing: border-box; }
+  html{ scroll-behavior: smooth; }
+
+  body{
+    margin:0;
+    background: var(--void);
+    color: var(--white);
+    font-family: var(--font-body);
+    overflow-x: hidden;
+    min-height:100vh;
+  }
+
+  ::selection{ background: var(--cyan); color: #04060c; }
+
+  #bokeh{ position: fixed; inset:0; z-index:0; overflow:hidden; pointer-events:none; }
+  #bokeh span{ position:absolute; border-radius:50%; filter: blur(40px); opacity:.28; animation: drift 22s ease-in-out infinite alternate; }
+  #bokeh span:nth-child(1){ width:260px; height:260px; left:6%; top:12%; background:var(--ember); animation-duration:26s; }
+  #bokeh span:nth-child(2){ width:180px; height:180px; left:82%; top:18%; background:var(--ember); animation-duration:19s; }
+  #bokeh span:nth-child(3){ width:320px; height:320px; left:70%; top:70%; background:var(--ember); animation-duration:30s; }
+  #bokeh span:nth-child(4){ width:220px; height:220px; left:12%; top:75%; background:var(--cyan); opacity:.14; animation-duration:24s; }
+  @keyframes drift{ from{ transform: translate(0,0) scale(1); } to{ transform: translate(30px,-24px) scale(1.12); } }
+
+  nav{
+    position: fixed; top:0; left:0; right:0; z-index:50;
+    display:flex; align-items:center; justify-content:space-between;
+    padding: .9rem 2rem;
+    background: var(--panel);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--line);
+  }
+  .brand{ display:flex; align-items:center; gap:.7rem; cursor:pointer; background:none; border:none; padding:0; text-decoration:none; }
+  .brand svg{ width:34px; height:34px; }
+  .brand span{ font-family: var(--font-display); font-weight:600; letter-spacing:.32em; font-size:.95rem; color: var(--white); text-transform:uppercase; }
+
+  .navlinks{ display:flex; align-items:center; gap:1.4rem; font-family: var(--font-mono); }
+  .navlinks a{
+    color: var(--steel); text-decoration:none; font-size:.72rem; letter-spacing:.2em; text-transform:uppercase;
+    position:relative; padding:.3rem 0; transition: color .25s ease;
+  }
+  .navlinks a.active{ color: var(--cyan); }
+  .navlinks a.active::after{
+    content:""; position:absolute; left:0; bottom:-4px; width:100%; height:1px; background: var(--cyan);
+    box-shadow: 0 0 6px var(--cyan);
+  }
+  .navlinks a[data-soon]{ cursor:default; }
+  .navlinks a[data-soon]:hover{ color: var(--steel); }
+  .navlinks a[data-soon]::before{
+    content: "soon"; position:absolute; top:-1.3em; left:50%; transform:translateX(-50%) scale(.8);
+    font-size:.6rem; letter-spacing:.15em; color: var(--ember); opacity:0; transition:opacity .2s ease;
+    pointer-events:none;
+  }
+  .navlinks a[data-soon]:hover::before{ opacity:.8; }
+  .navlinks .divider{ color: var(--steel-dim); }
+  .navlinks-user{ color: var(--cyan-dim); font-size:.72rem; letter-spacing:.15em; text-transform:uppercase; }
+  .nav-logout{ color: var(--steel) !important; }
+  .nav-logout:hover{ color: var(--ember) !important; }
+
+  main{ position:relative; z-index:1; min-height:100vh; display:flex; align-items:center; justify-content:center; padding: 7rem 1.5rem 4rem; }
+
+  .closed-panel{
+    max-width: 560px; width:100%;
+    background: var(--panel); border:1px solid var(--line); border-radius:2px;
+    padding: 2.6rem 2.2rem; text-align:center; position:relative;
+  }
+  .closed-panel::before{ content:""; position:absolute; top:0; left:0; width:22px; height:22px; border-top:1px solid var(--ember); border-left:1px solid var(--ember); }
+  .closed-panel::after{ content:""; position:absolute; bottom:0; right:0; width:22px; height:22px; border-bottom:1px solid var(--ember); border-right:1px solid var(--ember); }
+
+  .status-badge{
+    display:inline-block; font-family: var(--font-mono); font-size:.65rem; letter-spacing:.2em; text-transform:uppercase;
+    color: var(--ember); border: 1px solid rgba(255,106,82,.4); background: rgba(255,106,82,.08);
+    padding: .35rem .8rem; border-radius:2px; margin-bottom:1.4rem;
+  }
+
+  .closed-panel svg.mark{ width:44px; height:44px; margin-bottom:1.2rem; opacity:.8; }
+
+  .closed-panel h1{
+    font-family: var(--font-display); text-transform:uppercase; letter-spacing:.14em;
+    font-size: clamp(1.3rem, 4vw, 1.8rem); margin: 0 0 1rem; color: var(--white);
+  }
+
+  .closed-panel p{ color: var(--steel); line-height:1.75; margin: 0 0 1.6rem; font-size:.98rem; }
+  .closed-panel p:last-of-type{ margin-bottom:0; }
+
+  .bot-note{
+    font-family: var(--font-mono); font-size:.85rem; letter-spacing:.02em; color: var(--white);
+    border-top:1px dashed var(--steel-dim); border-bottom:1px dashed var(--steel-dim);
+    padding: 1rem .5rem; line-height:1.9;
+  }
+  .bot-note .chan{ color: var(--cyan); }
+  .bot-note .bot{ color: var(--cyan); }
+
+  footer{
+    border-top: 1px solid var(--line); padding: 2.2rem 1.5rem; text-align:center;
+    font-family: var(--font-mono); font-size:.68rem; letter-spacing:.2em; color: var(--steel-dim);
+    text-transform:uppercase; position:relative; z-index:1;
+  }
+  footer .fmark{ display:flex; align-items:center; justify-content:center; gap:.5rem; margin-bottom:.8rem; }
+  footer .fmark svg{ width:20px; height:20px; opacity:.7; }
+
+  @media (max-width: 640px){
+    nav{ padding:.8rem 1.1rem; }
+    .navlinks{ gap:.9rem; }
+    .brand span{ font-size:.75rem; letter-spacing:.22em; }
+    .closed-panel{ padding: 2rem 1.4rem; }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+  }
+</style>
+</head>
+<body>
+<!--BEACON_AUTH_STATE-->
+
+<div id="bokeh" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
+
+<nav>
+  <a class="brand home-trigger" href="index.html#top" aria-label="Project Beacon — home">
+    <svg viewBox="0 0 200 200"><circle cx="100" cy="100" r="90" fill="none" stroke="var(--white)" stroke-width="2"/><circle cx="100" cy="100" r="76" fill="none" stroke="var(--cyan)" stroke-width="1.5" opacity=".6"/><g fill="var(--white)"><polygon points="100,4 106,88 100,74 94,88"/><polygon points="100,196 106,112 100,126 94,112"/><polygon points="4,100 88,106 74,100 88,94"/><polygon points="196,100 112,106 126,100 112,94"/></g><g fill="var(--white)" opacity=".9"><polygon points="100,100 148,58 132,74"/><polygon points="100,100 142,152 126,132"/><polygon points="100,100 52,142 68,126"/><polygon points="100,100 58,48 74,68"/></g><polygon points="100,84 116,100 100,116 84,100" fill="var(--white)"/></svg>
+    <span>BEACON</span>
+  </a>
+  <div class="navlinks">
+    <a href="index.html#top" class="home-trigger">Home</a>
+    <span class="divider">/</span>
+    <a href="applications.html" class="active">Applications</a>
+    <span class="divider">/</span>
+    <a href="credits.html">Credits</a>
+    <span class="divider">/</span>
+    <span class="navlinks-user" id="beacon-user"></span>
+    <a href="/auth/logout" class="nav-logout">Logout</a>
+  </div>
+</nav>
+
+<main>
+  <div class="closed-panel">
+    <svg class="mark" viewBox="0 0 200 200"><circle cx="100" cy="100" r="90" fill="none" stroke="var(--ember)" stroke-width="2"/><g fill="var(--ember)"><polygon points="100,4 106,88 100,74 94,88"/><polygon points="100,196 106,112 100,126 94,112"/><polygon points="4,100 88,106 74,100 88,94"/><polygon points="196,100 112,106 126,100 112,94"/></g><polygon points="100,84 116,100 100,116 84,100" fill="var(--ember)"/></svg>
+
+    <span class="status-badge">Closed</span>
+    <h1>Applications Are Closed</h1>
+    <p>The application page on the website is currently closed.</p>
+
+    <div class="bot-note">
+      Please apply using the <span class="bot">Appy</span> bot in <span class="chan">#applications</span>.
+    </div>
+  </div>
+</main>
+
+<footer>
+  <div class="fmark">
+    <svg viewBox="0 0 200 200"><circle cx="100" cy="100" r="90" fill="none" stroke="var(--white)" stroke-width="2"/><polygon points="100,4 106,88 100,74 94,88" fill="var(--white)"/><polygon points="100,196 106,112 100,126 94,112" fill="var(--white)"/><polygon points="4,100 88,106 74,100 88,94" fill="var(--white)"/><polygon points="196,100 112,106 126,100 112,94" fill="var(--white)"/></svg>
+  </div>
+  Project: Beacon
+</footer>
+
+<script>
+  document.querySelectorAll('[data-soon]').forEach(function(el){
+    el.addEventListener('click', function(e){ e.preventDefault(); });
+  });
+  var userSlot = document.getElementById('beacon-user');
+  if (userSlot && window.BEACON_USER && window.BEACON_USER.username){
+    userSlot.textContent = window.BEACON_USER.username;
+  }
+</script>
+
+</body>
+</html>
