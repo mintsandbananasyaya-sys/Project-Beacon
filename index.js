@@ -17,7 +17,7 @@ const client = new Client({
   ],
 });
 
-const OWNER_ID = process.env.OWNER_ID;
+const OWNER_ROLE_ID = process.env.OWNER_ROLE_ID;
 
 // ---------- slash command definitions ----------
 
@@ -51,7 +51,6 @@ const commands = [
         .setDescription('Required if target = "One person"')
         .setRequired(false)
     )
-    .setDefaultMemberPermissions(PermissionFlagsBits.Administrator) // extra safety net, real check is OWNER_ID
     .toJSON(),
 
   new SlashCommandBuilder()
@@ -83,7 +82,6 @@ const commands = [
         .setDescription('Required if target = "One person"')
         .setRequired(false)
     )
-    .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
     .toJSON(),
 ];
 
@@ -105,7 +103,8 @@ async function registerCommands() {
 
 async function runRoleAction(interaction, mode) {
   // mode: 'give' or 'remove'
-  if (interaction.user.id !== OWNER_ID) {
+  const invoker = interaction.member; // GuildMember, since these are guild-only commands
+  if (!invoker || !invoker.roles.cache.has(OWNER_ROLE_ID)) {
     return interaction.reply({ content: "You don't have permission to use this command.", ephemeral: true });
   }
 
