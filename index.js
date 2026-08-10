@@ -7,6 +7,9 @@ const {
   Routes,
   SlashCommandBuilder,
   EmbedBuilder,
+  ActionRowBuilder,
+  ButtonBuilder,
+  ButtonStyle,
 } = require('discord.js');
 const express = require('express');
 
@@ -18,6 +21,8 @@ const client = new Client({
 });
 
 const OWNER_ROLE_ID = process.env.OWNER_ROLE_ID;
+const ACCEPTED_ROLE_ID = process.env.ACCEPTED_ROLE_ID;
+const WEBSITE_URL = process.env.WEBSITE_URL; // e.g. https://project-beacon.onrender.com
 
 // ---------- slash command definitions ----------
 
@@ -88,6 +93,21 @@ const commands = [
     .setName('schedule')
     .setDescription('Show the Beacon session schedule')
     .toJSON(),
+
+  new SlashCommandBuilder()
+    .setName('apply')
+    .setDescription('Get a link to the Beacon application')
+    .toJSON(),
+
+  new SlashCommandBuilder()
+    .setName('status')
+    .setDescription('Check your Beacon application status')
+    .toJSON(),
+
+  new SlashCommandBuilder()
+    .setName('nextsession')
+    .setDescription('Show the next upcoming Beacon session')
+    .toJSON(),
 ];
 
 async function registerCommands() {
@@ -106,21 +126,51 @@ async function registerCommands() {
 
 // ---------- schedule ----------
 
+const SESSIONS = [
+  { label: 'Session 1', start: 1786465800, end: 1786476600 },
+  { label: 'Session 2', start: 1786811400, end: 1786822200 },
+  { label: 'Session 3', start: 1786897800, end: 1786908600 },
+  { label: 'Session 4', start: 1787416200, end: 1787427000, note: 'Build Day' },
+  { label: 'Session 5', start: 1787502600, end: 1787513400 },
+  { label: 'Session 6', start: 1788021000, end: 1788031800 },
+  { label: 'Session 7', start: 1788107400, end: 1788118200 },
+];
+
 function buildScheduleEmbed() {
-  const lines = [
-    `🌍 **Session 1** — <t:1786465800:F> (<t:1786465800:t>–<t:1786476600:t>)`,
-    `🌍 **Session 2** — <t:1786811400:F> (<t:1786811400:t>–<t:1786822200:t>)`,
-    `🌍 **Session 3** — <t:1786897800:F> (<t:1786897800:t>–<t:1786908600:t>)`,
-    ``,
-    `**Build Day**`,
-    `🌍 **Session 4** — <t:1787416200:F> (<t:1787416200:t>–<t:1787427000:t>)`,
-    `🌍 **Session 5** — <t:1787502600:F> (<t:1787502600:t>–<t:1787513400:t>)`,
-    `🌍 **Session 6** — <t:1788021000:F> (<t:1788021000:t>–<t:1788031800:t>)`,
-    `🌍 **Session 7** — <t:1788107400:F> (<t:1788107400:t>–<t:1788118200:t>)`,
-  ];
+  const lines = [];
+  for (const s of SESSIONS) {
+    if (s.note) {
+      lines.push('', `**${s.note}**`);
+    }
+    lines.push(`🌍 **${s.label}** — <t:${s.start}:F> (<t:${s.start}:t>–<t:${s.end}:t>)`);
+  }
 
   return new EmbedBuilder()
     .setTitle('📅 Beacon Schedule')
+    .setDescription(lines.join('\n').trim())
+    .setColor(0x5865f2);
+}
+
+function buildNextSessionEmbed() {
+  const now = Math.floor(Date.now() / 1000);
+  const next = SESSIONS.find((s) => s.end > now);
+
+  if (!next) {
+    return new EmbedBuilder()
+      .setTitle('📅 Next Session')
+      .setDescription('No upcoming sessions scheduled right now.')
+      .setColor(0x5865f2);
+  }
+
+  const status = next.start > now ? 'Upcoming' : 'Happening now';
+  const lines = [
+    `🌍 **${next.label}**${next.note ? ` (${next.note})` : ''} — ${status}`,
+    `📅 <t:${next.start}:F>`,
+    `🕒 <t:${next.start}:t> – <t:${next.end}:t>  (<t:${next.start}:R>)`,
+  ];
+
+  return new EmbedBuilder()
+    .setTitle('📅 Next Session')
     .setDescription(lines.join('\n'))
     .setColor(0x5865f2);
 }
@@ -221,6 +271,33 @@ client.on('interactionCreate', async (interaction) => {
       await runRoleAction(interaction, 'remove');
     } else if (interaction.commandName === 'schedule') {
       await interaction.reply({ embeds: [buildScheduleEmbed()] }); // not ephemeral - visible to everyone
+    } else if (interaction.commandName === 'nextsession') {
+      await interaction.reply({ embeds: [buildNextSessionEmbed()] }); // not ephemeral - visible to everyone
+    } else if (interaction.commandName === 'apply') {
+      if (!WEBSITE_URL) {
+        return interaction.reply({ content: 'Application link isn\'t configured yet — ask an owner to set `WEBSITE_URL`.', ephemeral: true });
+      }
+      const row = new ActionRowBuilder().addComponents(
+        new ButtonBuilder()
+          .setLabel('Apply to Beacon')
+          .setStyle(ButtonStyle.Link)
+          .setURL(`${WEBSITE_URL}/applications.html`)
+      );
+      await interaction.reply({
+        content: 'Ready to apply? Hit the button below.',
+        components: [row],
+        ephemeral: true,
+      });
+    } else if (interaction.commandName === 'status') {
+      if (!ACCEPTED_ROLE_ID) {
+        return interaction.reply({ content: 'Status checks aren\'t configured yet — ask an owner to set `ACCEPTED_ROLE_ID`.', ephemeral: true });
+      }
+      const member = interaction.member;
+      const accepted = member && member.roles.cache.has(ACCEPTED_ROLE_ID);
+      const message = accepted
+        ? '✅ Your application status: **Accepted**'
+        : '⏳ Your application status: **Denied or in review**';
+      await interaction.reply({ content: message, ephemeral: true });
     }
   } catch (err) {
     console.error('[Beacon] Command error:', err);
