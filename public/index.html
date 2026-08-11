@@ -64,6 +64,7 @@
     display:flex; align-items:center; justify-content:center;
     background: var(--void);
     cursor: var(--cursor-pointer);
+    overflow:hidden;
     transition: opacity .8s ease, transform .9s cubic-bezier(.7,0,.3,1);
   }
   #intro.intro-out{
@@ -71,49 +72,149 @@
     transform: scale(1.35);
     pointer-events:none;
   }
+  #intro::before{
+    content:""; position:absolute; inset:0; z-index:1; pointer-events:none;
+    background: radial-gradient(ellipse at center, transparent 35%, rgba(0,0,0,.55) 100%);
+  }
+
+  /* ---- drifting particle field ---- */
+  #intro-particles{ position:absolute; inset:0; z-index:0; pointer-events:none; }
+  #intro-particles span{
+    position:absolute; border-radius:50%; background: var(--cyan);
+    opacity:0; animation: particle-drift linear infinite, particle-twinkle ease-in-out infinite;
+  }
+  @keyframes particle-drift{
+    from{ transform: translateY(0); }
+    to{ transform: translateY(-40px); }
+  }
+  @keyframes particle-twinkle{
+    0%,100%{ opacity:0; }
+    50%{ opacity: var(--p-opacity, .5); }
+  }
+
+  .intro-stage{ position:relative; z-index:2; display:flex; flex-direction:column; align-items:center; }
+
+  /* ---- radar sweep ring behind the logo ---- */
+  .radar-sweep{
+    position:absolute; top:50%; left:50%; z-index:0;
+    width: min(50vw, 340px); height: min(50vw, 340px);
+    transform: translate(-50%,-50%);
+    border-radius:50%;
+    background: conic-gradient(from 0deg, transparent 0deg, rgba(127,227,255,.5) 18deg, transparent 60deg);
+    -webkit-mask: radial-gradient(circle, transparent 58%, black 59%, black 78%, transparent 79%);
+            mask: radial-gradient(circle, transparent 58%, black 59%, black 78%, transparent 79%);
+    opacity:0; pointer-events:none;
+  }
+  #intro.play .radar-sweep{ animation: radar-fade-spin 2.35s linear forwards; }
+  @keyframes radar-fade-spin{
+    0%{ opacity:0; transform: translate(-50%,-50%) rotate(0deg); }
+    8%{ opacity:1; }
+    80%{ opacity:1; }
+    100%{ opacity:0; transform: translate(-50%,-50%) rotate(760deg); }
+  }
+
   #intro .hint{
-    position:absolute; bottom:8%; left:50%; transform:translateX(-50%);
+    margin-top: 1.6rem;
     font-family: var(--font-mono); font-size:.7rem; letter-spacing:.25em;
     color: var(--steel); text-transform:uppercase; opacity:0;
-    animation: hint-in 1s ease 2.4s forwards;
+    animation: hint-in 1s ease 2.9s forwards;
   }
   @keyframes hint-in{ to{ opacity:.7; } }
 
-  .beacon-logo{ overflow: visible; }
-  .beacon-logo .ring-outer, .beacon-logo .ring-inner,
+  .intro-status{
+    margin-top: .7rem; height: 1em;
+    font-family: var(--font-mono); font-size:.66rem; letter-spacing:.32em;
+    color: var(--cyan-dim); text-transform:uppercase;
+    opacity:0; transition: opacity .35s ease;
+  }
+  .intro-status.show{ opacity:1; }
+
+  .beacon-logo{ overflow: visible; position:relative; z-index:1; }
+  .beacon-logo .ring-outer, .beacon-logo .ring-inner{ opacity:0; }
   .beacon-logo .tick, .beacon-logo .spike-major, .beacon-logo .spike-minor,
   .beacon-logo .core{ opacity:0; transform-box: fill-box; transform-origin: center; }
 
-  #intro.play .ring-outer{ animation: fade-scale-in 1s ease forwards, ring-spin 50s linear infinite 1s; }
-  #intro.play .ring-inner{ animation: fade-scale-in 1s ease .15s forwards, ring-spin-rev 36s linear infinite 1.15s; }
-  #intro.play .tick{ animation: fade-in .4s ease forwards; }
-  #intro.play .tick:nth-child(odd){ animation-delay: .5s; }
-  #intro.play .tick:nth-child(even){ animation-delay: .65s; }
-  #intro.play .spike-major{ animation: spike-in .7s cubic-bezier(.2,1,.3,1) .5s forwards; }
-  #intro.play .spike-minor{ animation: fade-in .6s ease .9s forwards; }
-  #intro.play .core{ animation: core-in .5s ease 1.1s forwards, core-pulse 2.2s ease-in-out 1.6s infinite; }
+  #intro.play .ring-outer{
+    opacity:.85;
+    animation: ring-draw 1s cubic-bezier(.4,0,.2,1) forwards, ring-spin 50s linear infinite 1s;
+  }
+  #intro.play .ring-inner{
+    opacity:.55;
+    animation: ring-draw .85s cubic-bezier(.4,0,.2,1) .18s forwards, ring-spin-rev 36s linear infinite 1.03s;
+  }
+  #intro.play .tick{ animation: tick-flash .5s ease forwards; }
+  #intro.play .tick:nth-child(1){ animation-delay: .90s; }
+  #intro.play .tick:nth-child(2){ animation-delay: .95s; }
+  #intro.play .tick:nth-child(3){ animation-delay: 1.00s; }
+  #intro.play .tick:nth-child(4){ animation-delay: 1.05s; }
+  #intro.play .tick:nth-child(5){ animation-delay: 1.10s; }
+  #intro.play .tick:nth-child(6){ animation-delay: 1.15s; }
+  #intro.play .tick:nth-child(7){ animation-delay: 1.20s; }
+  #intro.play .tick:nth-child(8){ animation-delay: 1.25s; }
 
-  #intro.ignite .beacon-logo{ animation: ignite-flash .7s ease forwards; }
-  #intro.ignite .ring-outer{ animation: ring-spin 50s linear infinite, ignite-ring .7s ease forwards; }
+  #intro.play .spike-major{ animation: spike-burst .65s cubic-bezier(.2,1.4,.3,1) 1.35s forwards; }
+  #intro.play .spike-minor{ animation: spike-burst .6s cubic-bezier(.2,1.4,.3,1) 1.58s forwards; }
+  #intro.play .core{ animation: core-in .45s ease 1.85s forwards, core-pulse 2.2s ease-in-out 2.3s infinite; }
 
-  @keyframes fade-scale-in{ from{ opacity:0; transform: scale(.6); } to{ opacity:.85; transform: scale(1); } }
-  @keyframes fade-in{ from{ opacity:0; } to{ opacity:1; } }
-  @keyframes spike-in{ from{ opacity:0; transform: scale(.15); } to{ opacity:1; transform: scale(1); } }
-  @keyframes core-in{ from{ opacity:0; transform: scale(0); } to{ opacity:1; transform: scale(1); } }
+  .intro-stage.shake{ animation: intro-shake .5s cubic-bezier(.3,0,.3,1); }
+  #intro.ignite .beacon-logo{ animation: ignite-flash .6s ease forwards; }
+  #intro.ignite .ring-outer{ animation: ring-spin 50s linear infinite, ignite-ring .6s ease forwards; }
+
+  .shock{
+    position:absolute; top:50%; left:50%; z-index:0;
+    width:60px; height:60px; margin:-30px 0 0 -30px;
+    border-radius:50%; border:1.5px solid var(--cyan);
+    opacity:0; pointer-events:none;
+  }
+  #intro.ignite .shock{ animation: shock-expand 1s cubic-bezier(.2,.7,.3,1) forwards; }
+  #intro.ignite .shock:nth-child(2){ animation-delay:.1s; border-color: var(--white); }
+  #intro.ignite .shock:nth-child(3){ animation-delay:.2s; }
+
+  @keyframes ring-draw{
+    from{ stroke-dashoffset:100; }
+    to{ stroke-dashoffset:0; }
+  }
+  @keyframes tick-flash{
+    0%{ opacity:0; }
+    35%{ opacity:1; filter: drop-shadow(0 0 6px var(--white)); }
+    100%{ opacity:.7; filter: none; }
+  }
+  @keyframes spike-burst{
+    0%{ opacity:0; transform: scale(.1); }
+    55%{ opacity:1; transform: scale(1.22); }
+    75%{ transform: scale(.92); }
+    100%{ opacity:1; transform: scale(1); }
+  }
+  @keyframes core-in{
+    0%{ opacity:0; transform: scale(0) rotate(-90deg); }
+    70%{ opacity:1; transform: scale(1.35) rotate(8deg); }
+    100%{ opacity:1; transform: scale(1) rotate(0deg); }
+  }
   @keyframes core-pulse{
     0%,100%{ filter: drop-shadow(0 0 6px var(--cyan)) drop-shadow(0 0 16px var(--cyan)); }
     50%{ filter: drop-shadow(0 0 14px var(--white)) drop-shadow(0 0 34px var(--cyan)); }
   }
   @keyframes ring-spin{ from{ transform: rotate(0deg); } to{ transform: rotate(360deg); } }
   @keyframes ring-spin-rev{ from{ transform: rotate(0deg); } to{ transform: rotate(-360deg); } }
-  @keyframes ignite-flash{ 0%{ transform: scale(1); } 50%{ transform: scale(1.18); filter: brightness(2.4); } 100%{ transform: scale(1); filter: brightness(1);} }
-  @keyframes ignite-ring{ 50%{ filter: drop-shadow(0 0 24px var(--white)); } }
+  @keyframes ignite-flash{ 0%{ transform: scale(1); } 45%{ transform: scale(1.3); filter: brightness(3); } 100%{ transform: scale(1); filter: brightness(1);} }
+  @keyframes ignite-ring{ 45%{ filter: drop-shadow(0 0 28px var(--white)); } }
+  @keyframes intro-shake{
+    0%,100%{ transform: translate(0,0); }
+    20%{ transform: translate(-6px,3px); }
+    40%{ transform: translate(5px,-4px); }
+    60%{ transform: translate(-4px,-2px); }
+    80%{ transform: translate(3px,4px); }
+  }
+  @keyframes shock-expand{
+    0%{ opacity:.9; transform: scale(.2); }
+    100%{ opacity:0; transform: scale(6.5); }
+  }
 
   #flash{
     position: fixed; inset:0; z-index:110; background: radial-gradient(circle, #ffffff 0%, var(--cyan) 45%, transparent 75%);
     opacity:0; pointer-events:none; transition: opacity .35s ease-out;
   }
-  #flash.flash-active{ opacity:1; transition: opacity .12s ease-in; }
+  #flash.flash-active{ opacity:1; transition: opacity .1s ease-in; }
 
   /* ================= APP ================= */
   .app{ position:relative; z-index:1; }
@@ -406,38 +507,46 @@
 
 <!-- ============ INTRO ============ -->
 <div id="intro" role="presentation" aria-hidden="true">
-  <svg class="beacon-logo" id="intro-logo" viewBox="0 0 200 200" width="min(46vw,320px)" height="min(46vw,320px)">
-    <g class="ring-outer"><circle cx="100" cy="100" r="90" fill="none" stroke="var(--white)" stroke-width="1.3" opacity=".85"/></g>
-    <g class="ring-inner"><circle cx="100" cy="100" r="76" fill="none" stroke="var(--cyan)" stroke-width="1" opacity=".55"/></g>
+  <div id="intro-particles"></div>
+  <div class="intro-stage">
+    <div class="radar-sweep"></div>
+    <div class="shock"></div>
+    <div class="shock"></div>
+    <div class="shock"></div>
+    <svg class="beacon-logo" id="intro-logo" viewBox="0 0 200 200" width="min(46vw,320px)" height="min(46vw,320px)">
+      <g class="ring-outer"><circle cx="100" cy="100" r="90" fill="none" stroke="var(--white)" stroke-width="1.3" pathLength="100" stroke-dasharray="100" stroke-dashoffset="100"/></g>
+      <g class="ring-inner"><circle cx="100" cy="100" r="76" fill="none" stroke="var(--cyan)" stroke-width="1" pathLength="100" stroke-dasharray="100" stroke-dashoffset="100"/></g>
 
-    <g stroke="var(--white)" stroke-width="1.4" opacity=".7">
-      <line class="tick" x1="100" y1="10" x2="100" y2="20"/>
-      <line class="tick" x1="100" y1="180" x2="100" y2="190"/>
-      <line class="tick" x1="10" y1="100" x2="20" y2="100"/>
-      <line class="tick" x1="180" y1="100" x2="190" y2="100"/>
-      <line class="tick" x1="35" y1="35" x2="42" y2="42" transform="rotate(0)"/>
-      <line class="tick" x1="158" y1="42" x2="165" y2="35"/>
-      <line class="tick" x1="35" y1="165" x2="42" y2="158"/>
-      <line class="tick" x1="165" y1="165" x2="158" y2="158"/>
-    </g>
+      <g stroke="var(--white)" stroke-width="1.4">
+        <line class="tick" x1="100" y1="10" x2="100" y2="20"/>
+        <line class="tick" x1="100" y1="180" x2="100" y2="190"/>
+        <line class="tick" x1="10" y1="100" x2="20" y2="100"/>
+        <line class="tick" x1="180" y1="100" x2="190" y2="100"/>
+        <line class="tick" x1="35" y1="35" x2="42" y2="42" transform="rotate(0)"/>
+        <line class="tick" x1="158" y1="42" x2="165" y2="35"/>
+        <line class="tick" x1="35" y1="165" x2="42" y2="158"/>
+        <line class="tick" x1="165" y1="165" x2="158" y2="158"/>
+      </g>
 
-    <g fill="var(--white)">
-      <polygon class="spike-major" points="100,4 106,88 100,74 94,88"/>
-      <polygon class="spike-major" points="100,196 106,112 100,126 94,112"/>
-      <polygon class="spike-major" points="4,100 88,106 74,100 88,94" transform="rotate(0 100 100)"/>
-      <polygon class="spike-major" points="196,100 112,106 126,100 112,94"/>
-    </g>
+      <g fill="var(--white)">
+        <polygon class="spike-major" points="100,4 106,88 100,74 94,88"/>
+        <polygon class="spike-major" points="100,196 106,112 100,126 94,112"/>
+        <polygon class="spike-major" points="4,100 88,106 74,100 88,94" transform="rotate(0 100 100)"/>
+        <polygon class="spike-major" points="196,100 112,106 126,100 112,94"/>
+      </g>
 
-    <g fill="var(--white)" opacity=".9">
-      <polygon class="spike-minor" points="100,100 148,58 132,74"/>
-      <polygon class="spike-minor" points="100,100 142,152 126,132"/>
-      <polygon class="spike-minor" points="100,100 52,142 68,126"/>
-      <polygon class="spike-minor" points="100,100 58,48 74,68"/>
-    </g>
+      <g fill="var(--white)" opacity=".9">
+        <polygon class="spike-minor" points="100,100 148,58 132,74"/>
+        <polygon class="spike-minor" points="100,100 142,152 126,132"/>
+        <polygon class="spike-minor" points="100,100 52,142 68,126"/>
+        <polygon class="spike-minor" points="100,100 58,48 74,68"/>
+      </g>
 
-    <polygon class="core" points="100,84 116,100 100,116 84,100" fill="var(--white)"/>
-  </svg>
-  <div class="hint">tap to enter</div>
+      <polygon class="core" points="100,84 116,100 100,116 84,100" fill="var(--white)"/>
+    </svg>
+    <div class="intro-status" id="intro-status"></div>
+    <div class="hint">tap anywhere to skip</div>
+  </div>
 </div>
 <div id="flash" aria-hidden="true"></div>
 
