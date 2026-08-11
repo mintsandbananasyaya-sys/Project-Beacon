@@ -27,7 +27,7 @@ const WEBSITE_URL = process.env.WEBSITE_URL; // e.g. https://project-beacon.onre
 // userId-sessionLabel -> Timeout, so a user can't stack duplicate reminders for the same session
 const scheduledReminders = new Map();
 
-const CUTE_PEOPLE = ['Liv', 'Vicipedia', 'Alphadarkman', 'Farlue', 'ver', 'aesily', 'Rocksink', 'Carrot daddy', 'nobody is cute, im gay', 'geneseck'];
+const CUTE_PEOPLE = ['Liv', 'Vicipedia', 'Alphadarkman', 'Farlue', 'ver', 'aesily', 'Rocksink', 'Carrot daddy', 'nobody is cute, im gay', 'geneseck', 'Yellow Di-duck'];
 
 // ---------- slash command definitions ----------
 
